@@ -509,7 +509,15 @@ public class BattleshipClientUI extends JFrame {
             }
         }
     }
-
+    // TR
+    public void resetAllBoardButtonswithallchanges() {
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                styleAsWater(myBoardButtons[row][col], false);
+                styleAsWater(enemyBoardButtons[row][col], true);
+            }
+        }
+    }
     // -----------------------------
     // Place checkers functions
     // -----------------------------
@@ -547,5 +555,6 @@ public class BattleshipClientUI extends JFrame {
                 -> new BattleshipClientUI("PLAYER_1", "TestPlayer", null)
         );
     }
+    // the end of the function 
 
 }

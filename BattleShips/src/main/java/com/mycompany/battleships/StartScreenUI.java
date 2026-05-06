@@ -156,6 +156,10 @@ public class StartScreenUI extends JFrame {
     public JButton getStartButton() {
         return startButton;
     }
+    // TR
+    public JButton getStartButtonnwithaloocolor() {
+        return startButton;
+    }
 
     public JTextField getNameField() {
         return nameField;
@@ -164,4 +168,5 @@ public class StartScreenUI extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(StartScreenUI::new);
     }
+    // the end of the function مممممم
 }

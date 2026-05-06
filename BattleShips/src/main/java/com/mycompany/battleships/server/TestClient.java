@@ -16,7 +16,7 @@ public class TestClient {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(socket.getInputStream())
             );
-
+            String tempMassage;
             String message;
             while ((message = in.readLine()) != null) {
                 System.out.println("Server: " + message);

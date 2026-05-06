@@ -91,9 +91,7 @@ public class EndScreenUI extends JFrame {
 
     private void buildLayout() {
     }
-    public void calcutetime(){
-        int totaltime = 0;
-    }
+
     public JButton getPlayAgainButton() {
         return playAgainButton;
     }
@@ -105,4 +103,6 @@ public class EndScreenUI extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new EndScreenUI("You Win!"));
     }
+    
+    // we add here the needed function for closing 
 }

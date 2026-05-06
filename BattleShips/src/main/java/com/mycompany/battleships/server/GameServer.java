@@ -13,7 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
 
-public class GameServer {
+public class GameServer  {
 
     private static final int PORT = 5000;
 
@@ -161,7 +161,7 @@ public class GameServer {
         }
     }
 
-    private static String boardToMessage(Board board) {
+    private static String boardToMessage(Board board){
         StringBuilder sb = new StringBuilder("BOARD ");
 
         Cell[][] grid = board.getGrid();
@@ -178,4 +178,27 @@ public class GameServer {
 
         return sb.toString();
     }
+    
+        // TR
+    
+        private static String boardToMessage(Board board, int numberof){
+        StringBuilder sb = new StringBuilder("BOARD ");
+
+        Cell[][] grid = board.getGrid();
+
+        for (int row = 0; row < 10; row++) {
+            for (int col = 0; col < 10; col++) {
+                if (grid[row][col].hasShip()) {
+                    sb.append("1");
+                } else {
+                    sb.append("0");
+                }
+            }
+        }
+
+        return sb.toString();
+    }
+    
+    
+    // the end of the class
 }
