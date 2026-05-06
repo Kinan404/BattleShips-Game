@@ -91,7 +91,9 @@ public class EndScreenUI extends JFrame {
 
     private void buildLayout() {
     }
-
+    public void calcutetime(){
+        int totaltime = 0;
+    }
     public JButton getPlayAgainButton() {
         return playAgainButton;
     }
