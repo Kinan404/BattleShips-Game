@@ -4,56 +4,77 @@
  */
 package com.mycompany.battleships.server;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.function.BiConsumer;
 
 public class ClientHandler extends Thread {
 
-    private Socket socket;
-    private PrintWriter out;
+    private final Socket socket;
+    private final PrintWriter out;
+    private final BufferedReader in;
+
     private String playerRole;
+    private GameSession gameSession;
 
-    private BufferedReader in;
-    private BiConsumer<String, String> serverCallback;
-
-    public ClientHandler(Socket socket, String playerRole) {
+    public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
-        this.playerRole = playerRole;
+        this.out = new PrintWriter(socket.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    }
 
-        try {
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void setPlayerRole(String playerRole) {
+        this.playerRole = playerRole;
+    }
+
+    public String getPlayerRole() {
+        return playerRole;
+    }
+
+    public void setGameSession(GameSession gameSession) {
+        this.gameSession = gameSession;
     }
 
     public void sendMessage(String message) {
         out.println(message);
     }
 
-    public void setServer(BiConsumer<String, String> serverCallback) {
-        this.serverCallback = serverCallback;
+    public String getClientInfo() {
+        return socket.getInetAddress().toString() + ":" + socket.getPort();
     }
 
     @Override
     public void run() {
-        System.out.println(playerRole + " handler started.");
 
         try {
             String message;
+
             while ((message = in.readLine()) != null) {
-                if (serverCallback != null) {
-                    serverCallback.accept(playerRole, message);
+                if (gameSession != null) {
+                    gameSession.handleMessage(this, message);
+                } else {
+                    System.out.println("[ClientHandler] Message received before session was assigned: " + message);
                 }
             }
+
         } catch (IOException e) {
-            System.out.println(playerRole + " disconnected.");
+            System.out.println("[ClientHandler] Client disconnected : " + getClientInfo());
+        } finally {
+            if (gameSession != null) {
+                gameSession.handleDisconnect(this);
+            }
+
+            closeConnection();
+        }
+    }
+
+    private void closeConnection() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.out.println("[ClientHandler] Error while closing connection for " + getClientInfo());
         }
     }
 }
-    // the end of the function 
