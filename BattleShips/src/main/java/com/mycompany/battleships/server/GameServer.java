@@ -5,6 +5,7 @@
 package com.mycompany.battleships.server;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,9 +67,13 @@ public class GameServer {
                 }
             }
 
+        } catch (BindException e) {
+            System.out.println("[Server] Port " + PORT + " is already in use.");
+            System.out.println("[Server] Please stop the previous server first, or use another port.");
         } catch (IOException e) {
             System.out.println("[Server] Server error occurred.");
             e.printStackTrace();
+
         }
     }
 }
