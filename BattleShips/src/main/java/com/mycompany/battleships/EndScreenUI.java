@@ -1,9 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.battleships;
 
+import com.mycompany.battleships.server.ClientConnection;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -14,18 +11,26 @@ public class EndScreenUI extends JFrame {
     private JButton playAgainButton;
     private JButton exitButton;
 
-    public EndScreenUI(String resultText) {
+    public EndScreenUI(String resultText, ClientConnection connection) {
         initializeFrame();
         initializeComponents(resultText);
         buildLayout();
         setVisible(true);
 
         playAgainButton.addActionListener(e -> {
+            if (connection != null) {
+                connection.closeConnection();
+            }
+
             new StartScreenUI();
             dispose();
         });
 
         exitButton.addActionListener(e -> {
+            if (connection != null) {
+                connection.closeConnection();
+            }
+
             System.exit(0);
         });
     }
@@ -101,8 +106,7 @@ public class EndScreenUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new EndScreenUI("You Win!"));
+        SwingUtilities.invokeLater(() -> new EndScreenUI("You Win!", null));
     }
-    
-    // we add here the needed function for closing 
+
 }
