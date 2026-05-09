@@ -181,6 +181,16 @@ public class ClientConnection {
                     });
                 }
                 break;
+            case "OPPONENT_EXITED":
+                if (gameUI != null) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        gameUI.setMyTurn(false);
+                        gameUI.setStatusText("Opponent left the game.");
+                        gameUI.setTurnText("Game Over");
+                        gameUI.showEndScreen("Opponent left the game.");
+                    });
+                }
+                break;
 
             default:
                 startScreenUI.setStatusText("Server: " + message);
@@ -194,6 +204,22 @@ public class ClientConnection {
         }
     }
 
+    public void sendExit() {
+        if (out != null) {
+            out.println("EXIT");
+        }
+    }
+
+    public void closeConnection() {
+        try {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getPlayerRole() {
         return playerRole;
     }
@@ -202,5 +228,5 @@ public class ClientConnection {
         this.playerName = name;
     }
 }
-    // the end of the function 
+// the end of the function 
 

@@ -99,6 +99,8 @@ public class BattleshipClientUI extends JFrame {
         }
         playerLabel.setText(playerName + " (" + playerRole + ")");
         setVisible(true);
+        
+        setupExitButton();
 
     }
 
@@ -250,11 +252,10 @@ public class BattleshipClientUI extends JFrame {
         updateMyBoardUI(row, col, result);
     }
 
-    public void showEndScreen(String resultText) {
-        new EndScreenUI(resultText);
-        dispose();
-    }
-
+public void showEndScreen(String resultText) {
+    new EndScreenUI(resultText, clientConnection);
+    dispose();
+}
     public void showShipsFromServer(String boardData) {
         int index = 0;
 
@@ -509,15 +510,7 @@ public class BattleshipClientUI extends JFrame {
             }
         }
     }
-    // TR
-    public void resetAllBoardButtonswithallchanges() {
-        for (int row = 0; row < BOARD_SIZE; row++) {
-            for (int col = 0; col < BOARD_SIZE; col++) {
-                styleAsWater(myBoardButtons[row][col], false);
-                styleAsWater(enemyBoardButtons[row][col], true);
-            }
-        }
-    }
+    
     // -----------------------------
     // Place checkers functions
     // -----------------------------
@@ -535,6 +528,27 @@ public class BattleshipClientUI extends JFrame {
         }
     }
 
+    
+    // Exit function
+    
+    private void setupExitButton() {
+    exitButton.addActionListener(e -> {
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to exit the game?",
+                "Exit Game",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (choice == JOptionPane.YES_OPTION) {
+            if (clientConnection != null) {
+                clientConnection.sendExit();
+            }
+
+            dispose();
+        }
+    });
+}
     // -----------------------------
     // Small UI helper methods
     // -----------------------------

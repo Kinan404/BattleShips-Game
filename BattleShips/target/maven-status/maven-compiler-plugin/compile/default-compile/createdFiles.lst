@@ -11,5 +11,5 @@ com\mycompany\battleships\server\ClientHandler.class
 com\mycompany\battleships\server\GameServer.class
 com\mycompany\battleships\HelperClasses\AttackResult.class
 com\mycompany\battleships\HelperClasses\Ship.class
-com\mycompany\battleships\Welcome_Page.class
+com\mycompany\battleships\server\GameSession.class
 com\mycompany\battleships\server\ClientConnection.class
