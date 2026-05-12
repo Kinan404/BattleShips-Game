@@ -1,4 +1,3 @@
-
 package com.mycompany.battleships.server;
 
 import com.mycompany.battleships.HelperClasses.AttackResult;
@@ -21,6 +20,7 @@ public class GameSession {
     private boolean gameEnded;
 
     public GameSession(int sessionId, ClientHandler player1, ClientHandler player2) {
+
         this.sessionId = sessionId;
         this.player1 = player1;
         this.player2 = player2;
@@ -28,9 +28,11 @@ public class GameSession {
         this.player1Board = new Board();
         this.player2Board = new Board();
 
+        // Player 1 starts first
         this.currentTurn = "PLAYER_1";
         this.gameEnded = false;
 
+        // Create random ships for both players
         generateRandomShips(player1Board);
         generateRandomShips(player2Board);
 
@@ -38,7 +40,9 @@ public class GameSession {
         this.player2.setGameSession(this);
     }
 
+    // Start the game session
     public void startSession() {
+
         System.out.println("[Session " + sessionId + "] Match started.");
         System.out.println("[Session " + sessionId + "] Player 1: " + player1.getClientInfo());
         System.out.println("[Session " + sessionId + "] Player 2: " + player2.getClientInfo());
@@ -52,6 +56,7 @@ public class GameSession {
         player1.sendMessage("START");
         player2.sendMessage("START");
 
+        // Send each player his own board
         player1.sendMessage(boardToMessage(player1Board));
         player2.sendMessage(boardToMessage(player2Board));
 
@@ -60,7 +65,10 @@ public class GameSession {
 
     }
 
+    // Handle messages received from players
     public synchronized void handleMessage(ClientHandler sender, String message) {
+
+        // Ignore messages if game already ended
         if (gameEnded) {
             System.out.println("[Session " + sessionId + "] Ignored message because game already ended: " + message);
             return;
@@ -70,11 +78,13 @@ public class GameSession {
 
         System.out.println("[Session " + sessionId + "] " + playerRole + " sent: " + message);
 
+        // Handle player exit
         if (message.equals("EXIT")) {
             handleExit(sender);
             return;
         }
 
+        // Handle attack message
         if (message.startsWith("ATTACK")) {
             handleAttack(sender, message);
             return;
@@ -83,19 +93,28 @@ public class GameSession {
         System.out.println("[Session " + sessionId + "] Unknown message from " + playerRole + ": " + message);
     }
 
+    // Handle attack from player
     private void handleAttack(ClientHandler sender, String message) {
+
         String playerRole = sender.getPlayerRole();
 
+        // Check if it is the correct player turn
         if (!playerRole.equals(currentTurn)) {
+
             System.out.println("[Session " + sessionId + "] Invalid turn. " + playerRole + " tried to play, but current turn is " + currentTurn);
+
             sender.sendMessage("WAIT");
+
             return;
         }
 
         String[] parts = message.split(" ");
 
+        // Check attack message format
         if (parts.length != 3) {
+
             System.out.println("[Session " + sessionId + "] Invalid ATTACK message format: " + message);
+
             return;
         }
 
@@ -103,10 +122,14 @@ public class GameSession {
         int col;
 
         try {
+
             row = Integer.parseInt(parts[1]);
             col = Integer.parseInt(parts[2]);
+
         } catch (NumberFormatException e) {
+
             System.out.println("[Session " + sessionId + "] Invalid attack coordinates: " + message);
+
             return;
         }
 
@@ -114,27 +137,35 @@ public class GameSession {
         ClientHandler defender;
         Board defenderBoard;
 
+        // Decide attacker and defender
         if (playerRole.equals("PLAYER_1")) {
+
             attacker = player1;
             defender = player2;
             defenderBoard = player2Board;
+
         } else {
+
             attacker = player2;
             defender = player1;
             defenderBoard = player1Board;
         }
 
+        // Check attack result
         AttackResult result = defenderBoard.receiveAttack(row, col);
 
         System.out.println(
-                "[Session " + sessionId + "] " + playerRole +
-                " attacked cell (" + row + ", " + col + ") -> " + result
+                "[Session " + sessionId + "] " + playerRole
+                + " attacked cell (" + row + ", " + col + ") -> " + result
         );
 
+        // Send result to both players
         attacker.sendMessage("RESULT " + result + " " + row + " " + col);
         defender.sendMessage("OPPONENT_ATTACK " + result + " " + row + " " + col);
 
+        // Check if game ended
         if (defenderBoard.allShipsSunk()) {
+
             gameEnded = true;
 
             attacker.sendMessage("WIN");
@@ -145,24 +176,32 @@ public class GameSession {
             System.out.println("[Session " + sessionId + "] Loser: " + defender.getPlayerRole());
 
             closeSession();
+
             return;
         }
 
+        // Change turn if attack missed
         if (result == AttackResult.MISS) {
+
             switchTurn();
 
             attacker.sendMessage("WAIT");
             defender.sendMessage("YOUR_TURN");
 
             System.out.println("[Session " + sessionId + "] Turn changed. Current turn: " + currentTurn);
+
         } else {
+
+            // Same player continues if hit
             attacker.sendMessage("YOUR_TURN");
             defender.sendMessage("WAIT");
 
         }
     }
 
+    // Handle normal player exit
     private void handleExit(ClientHandler sender) {
+
         gameEnded = true;
 
         ClientHandler opponent = getOpponent(sender);
@@ -177,7 +216,9 @@ public class GameSession {
         closeSession();
     }
 
+    // Handle unexpected disconnect
     public synchronized void handleDisconnect(ClientHandler disconnectedPlayer) {
+
         if (gameEnded) {
             return;
         }
@@ -196,7 +237,9 @@ public class GameSession {
         closeSession();
     }
 
+    // Get the other player
     private ClientHandler getOpponent(ClientHandler player) {
+
         if (player == player1) {
             return player2;
         } else if (player == player2) {
@@ -206,7 +249,9 @@ public class GameSession {
         return null;
     }
 
+    // Change the current turn
     private void switchTurn() {
+
         if (currentTurn.equals("PLAYER_1")) {
             currentTurn = "PLAYER_2";
         } else {
@@ -214,11 +259,14 @@ public class GameSession {
         }
     }
 
+    // Close the session
     private void closeSession() {
         System.out.println("[Session " + sessionId + "] Session closed.");
     }
 
+    // Generate random ships for a board
     private void generateRandomShips(Board board) {
+
         Random random = new Random();
 
         Ship[] ships = {
@@ -230,9 +278,12 @@ public class GameSession {
         };
 
         for (Ship ship : ships) {
+
             boolean placed = false;
 
+            // Try until the ship is placed correctly
             while (!placed) {
+
                 int row = random.nextInt(10);
                 int col = random.nextInt(10);
                 boolean horizontal = random.nextBoolean();
@@ -242,13 +293,16 @@ public class GameSession {
         }
     }
 
+    // Convert board to message for client
     private String boardToMessage(Board board) {
+
         StringBuilder sb = new StringBuilder("BOARD ");
 
         Cell[][] grid = board.getGrid();
 
         for (int row = 0; row < 10; row++) {
             for (int col = 0; col < 10; col++) {
+
                 if (grid[row][col].hasShip()) {
                     sb.append("1");
                 } else {
