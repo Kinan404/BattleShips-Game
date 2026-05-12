@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.mycompany.battleships.server;
 
 import java.io.BufferedReader;
@@ -20,6 +17,7 @@ public class ClientHandler extends Thread {
     private GameSession gameSession;
 
     public ClientHandler(Socket socket) throws IOException {
+
         this.socket = socket;
         this.out = new PrintWriter(socket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -37,10 +35,12 @@ public class ClientHandler extends Thread {
         this.gameSession = gameSession;
     }
 
+    // Send message to this client
     public void sendMessage(String message) {
         out.println(message);
     }
 
+    // Return client IP and port
     public String getClientInfo() {
         return socket.getInetAddress().toString() + ":" + socket.getPort();
     }
@@ -51,7 +51,9 @@ public class ClientHandler extends Thread {
         try {
             String message;
 
+            // Keep reading client messages
             while ((message = in.readLine()) != null) {
+
                 if (gameSession != null) {
                     gameSession.handleMessage(this, message);
                 } else {
@@ -62,15 +64,21 @@ public class ClientHandler extends Thread {
         } catch (IOException e) {
             System.out.println("[ClientHandler] Client disconnected : " + getClientInfo());
         } finally {
+
+            // Inform session when client disconnects
             if (gameSession != null) {
                 gameSession.handleDisconnect(this);
             }
+
+            GameServer.removeWaitingPlayer(this);
 
             closeConnection();
         }
     }
 
+    // Close client socket
     private void closeConnection() {
+
         try {
             socket.close();
         } catch (IOException e) {
