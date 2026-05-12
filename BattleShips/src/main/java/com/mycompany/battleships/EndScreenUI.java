@@ -4,6 +4,10 @@ import com.mycompany.battleships.server.ClientConnection;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+
 
 public class EndScreenUI extends JFrame {
 
@@ -11,12 +15,20 @@ public class EndScreenUI extends JFrame {
     private JButton playAgainButton;
     private JButton exitButton;
 
+    // Used to close the connection when game ends
+    private ClientConnection connection;
+
     public EndScreenUI(String resultText, ClientConnection connection) {
+
+        this.connection = connection;
+
+        setupWindowCloseBehavior();
         initializeFrame();
         initializeComponents(resultText);
-        buildLayout();
+
         setVisible(true);
 
+        // Start a new game
         playAgainButton.addActionListener(e -> {
             if (connection != null) {
                 connection.closeConnection();
@@ -26,6 +38,7 @@ public class EndScreenUI extends JFrame {
             dispose();
         });
 
+        // Exit the program
         exitButton.addActionListener(e -> {
             if (connection != null) {
                 connection.closeConnection();
@@ -35,7 +48,26 @@ public class EndScreenUI extends JFrame {
         });
     }
 
+    // Close connection when window is closed
+    private void setupWindowCloseBehavior() {
+
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (connection != null) {
+                    connection.closeConnection();
+                }
+
+                dispose();
+            }
+        });
+    }
+
+    // Setup end screen window
     private void initializeFrame() {
+
         setTitle("Battleship - Game Over");
         setSize(1100, 700);
         setLocationRelativeTo(null);
@@ -43,7 +75,9 @@ public class EndScreenUI extends JFrame {
         setResizable(false);
     }
 
+    // Create end screen components
     private void initializeComponents(String resultText) {
+
         resultLabel = new JLabel(resultText, SwingConstants.CENTER);
         resultLabel.setFont(new Font("Segoe UI", Font.BOLD, 42));
         resultLabel.setForeground(Color.WHITE);
@@ -66,9 +100,11 @@ public class EndScreenUI extends JFrame {
         exitButton.setFocusPainted(false);
         exitButton.setPreferredSize(new Dimension(180, 50));
 
+        // Main background panel
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBackground(new Color(8, 36, 64));
 
+        // Card panel for result and buttons
         JPanel cardPanel = new JPanel();
         cardPanel.setLayout(new BoxLayout(cardPanel, BoxLayout.Y_AXIS));
         cardPanel.setBackground(new Color(13, 52, 89));
@@ -94,17 +130,17 @@ public class EndScreenUI extends JFrame {
         setContentPane(mainPanel);
     }
 
-    private void buildLayout() {
-    }
-
+    // Return play again button
     public JButton getPlayAgainButton() {
         return playAgainButton;
     }
 
+    // Return exit button
     public JButton getExitButton() {
         return exitButton;
     }
 
+    // Used to test this screen alone
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new EndScreenUI("You Win!", null));
     }
