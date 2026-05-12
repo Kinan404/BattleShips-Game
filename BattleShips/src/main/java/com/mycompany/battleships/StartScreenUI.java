@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import com.mycompany.battleships.server.ClientConnection;
 
+
 public class StartScreenUI extends JFrame {
 
     private BackgroundPanel backgroundPanel;
@@ -23,15 +24,21 @@ public class StartScreenUI extends JFrame {
     private ClientConnection clientConnection;
 
     public StartScreenUI() {
+
         initializeFrame();
         initializeComponents();
         buildLayout();
+
+        // Create connection object for this screen
         clientConnection = new ClientConnection(this);
+
         setVisible(true);
 
     }
 
+    // Setup start screen window
     private void initializeFrame() {
+
         setTitle("Battleship - Start");
         setSize(1100, 700);
         setMinimumSize(new Dimension(1000, 650));
@@ -39,7 +46,9 @@ public class StartScreenUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    // Create start screen components
     private void initializeComponents() {
+
         nameField = new JTextField(15);
         nameField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         nameField.setBorder(new CompoundBorder(
@@ -55,27 +64,35 @@ public class StartScreenUI extends JFrame {
         startButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         startButton.setPreferredSize(new Dimension(160, 40));
 
-        // For jlabel of state
+        // Label for connection status
         statusLabel = new JLabel(" ", SwingConstants.CENTER);
         statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         statusLabel.setForeground(new Color(200, 220, 240));
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Connect to server when start button is clicked
         startButton.addActionListener(e -> {
             setStatusText("Connecting to server...");
             startButton.setEnabled(false);
-
+//            clientConnection.connectToServer("13.60.235.82", 5000);
             clientConnection.connectToServer("127.0.0.1", 5000);
+
             String playerName = nameField.getText().trim();
+
+            // Send player name to connection class
             clientConnection.setPlayerName(playerName);
         });
     }
 
+    // Update status text safely
     public void setStatusText(String text) {
         javax.swing.SwingUtilities.invokeLater(() -> statusLabel.setText(text));
     }
 
+
+        // Build the start screen design
     private void buildLayout() {
+
         backgroundPanel = new BackgroundPanel("C:\\Users\\Kinan\\Documents\\NetBeansProjects\\BattleShips\\src\\main\\java\\com\\mycompany\\battleships\\Welcome_Page_Background.png");
         backgroundPanel.setLayout(new GridBagLayout());
 
@@ -88,9 +105,11 @@ public class StartScreenUI extends JFrame {
                 new EmptyBorder(40, 55, 40, 55)
         ));
         overlayCard.setPreferredSize(new Dimension(420, 320));
-        // small box location
+
+        // Set card location
         backgroundPanel.setLayout(null);
         overlayCard.setBounds(350, 180, 400, 350);
+
         JLabel title = new JLabel("BATTLESHIP", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 34));
         title.setForeground(Color.WHITE);
@@ -122,11 +141,13 @@ public class StartScreenUI extends JFrame {
         setContentPane(backgroundPanel);
     }
 
+    // Panel used to show background image
     private static class BackgroundPanel extends JPanel {
 
         private Image backgroundImage;
 
         public BackgroundPanel(String imagePath) {
+
             try {
                 backgroundImage = ImageIO.read(new File(imagePath));
             } catch (IOException e) {
@@ -136,28 +157,32 @@ public class StartScreenUI extends JFrame {
 
         @Override
         protected void paintComponent(Graphics g) {
+
             super.paintComponent(g);
 
+            // Draw image if it exists
             if (backgroundImage != null) {
+
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+
             } else {
+
+                // Use gradient if image cannot be loaded
                 Graphics2D g2d = (Graphics2D) g;
+
                 GradientPaint gradient = new GradientPaint(
                         0, 0, new Color(6, 24, 44),
                         getWidth(), getHeight(), new Color(18, 84, 128)
                 );
+
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         }
     }
 
-    // Getter for later use
+    // Return start button
     public JButton getStartButton() {
-        return startButton;
-    }
-    // TR
-    public JButton getStartButtonnwithaloocolor() {
         return startButton;
     }
 
@@ -166,7 +191,5 @@ public class StartScreenUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(StartScreenUI::new);
     }
-    // the end of the function 
 }
