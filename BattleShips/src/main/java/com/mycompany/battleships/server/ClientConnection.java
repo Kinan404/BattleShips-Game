@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.battleships.server;
 
 import com.mycompany.battleships.BattleshipClientUI;
@@ -11,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.io.PrintWriter;
+
 
 public class ClientConnection {
 
@@ -26,36 +23,52 @@ public class ClientConnection {
 
     private String playerName;
 
-    // solving the problem of not show the ships for each player
+    // Save board data until game screen is ready
     private String pendingBoardData;
 
     public ClientConnection(StartScreenUI startScreenUI) {
         this.startScreenUI = startScreenUI;
     }
 
+    // Connect client to the server
     public void connectToServer(String host, int port) {
+
         new Thread(() -> {
             try {
+
                 socket = new Socket(host, port);
+
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
+
                 startScreenUI.setStatusText("Connected. Waiting for another player...");
 
                 String message;
+
+                // Keep reading messages from server
                 while ((message = in.readLine()) != null) {
                     handleServerMessage(message);
                 }
 
             } catch (Exception e) {
-                startScreenUI.setStatusText("Connection failed");
-                e.printStackTrace();
+
+                if (socket != null && socket.isClosed()) {
+                    System.out.println("[Client] Connection closed.");
+                } else {
+                    startScreenUI.setStatusText("Connection failed");
+                    e.printStackTrace();
+                }
             }
         }).start();
     }
 
+
+    // Handle messages coming from the server
     private void handleServerMessage(String message) {
 
+        // Result of my attack on enemy board
         if (message.startsWith("RESULT")) {
+
             String[] parts = message.split(" ");
             String result = parts[1];
             int row = Integer.parseInt(parts[2]);
@@ -75,10 +88,13 @@ public class ClientConnection {
                     }
                 });
             }
+
             return;
         }
 
+        // Attack received from the opponent
         if (message.startsWith("OPPONENT_ATTACK")) {
+
             String[] parts = message.split(" ");
             String resultText = parts[1];
             int row = Integer.parseInt(parts[2]);
@@ -90,9 +106,13 @@ public class ClientConnection {
                     gameUI.handleAttackOnMyBoardFromNetwork(row, col, result);
                 });
             }
+
             return;
         }
+
+        // Board data sent by server
         if (message.startsWith("BOARD ")) {
+
             String boardData = message.substring(6);
 
             if (gameUI != null) {
@@ -102,9 +122,12 @@ public class ClientConnection {
             } else {
                 pendingBoardData = boardData;
             }
+
             return;
         }
+
         switch (message) {
+
             case "PLAYER_1":
                 playerRole = "PLAYER_1";
                 startScreenUI.setStatusText("You are Player 1. Waiting...");
@@ -160,6 +183,7 @@ public class ClientConnection {
                     });
                 }
                 break;
+
             case "WIN":
                 if (gameUI != null) {
                     javax.swing.SwingUtilities.invokeLater(() -> {
@@ -181,6 +205,7 @@ public class ClientConnection {
                     });
                 }
                 break;
+
             case "OPPONENT_EXITED":
                 if (gameUI != null) {
                     javax.swing.SwingUtilities.invokeLater(() -> {
@@ -197,19 +222,21 @@ public class ClientConnection {
                 break;
         }
     }
-
+    // Send attack position to server
     public void sendAttack(int row, int col) {
         if (out != null) {
             out.println("ATTACK " + row + " " + col);
         }
     }
 
+    // Tell server that player exited
     public void sendExit() {
         if (out != null) {
             out.println("EXIT");
         }
     }
 
+    // Close socket connection
     public void closeConnection() {
         try {
             if (socket != null && !socket.isClosed()) {
@@ -228,5 +255,3 @@ public class ClientConnection {
         this.playerName = name;
     }
 }
-// the end of the function 
-
