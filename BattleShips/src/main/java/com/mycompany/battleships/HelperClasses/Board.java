@@ -7,12 +7,16 @@ package com.mycompany.battleships.HelperClasses;
 import java.util.ArrayList;
 
 public class Board {
+
     private final int SIZE = 10;
     private Cell[][] grid;
-private ArrayList<Ship> ships;
+    private ArrayList<Ship> ships;
+
     public Board() {
+
         grid = new Cell[SIZE][SIZE];
 
+        // Create cells for the board
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 grid[i][j] = new Cell();
@@ -28,12 +32,16 @@ private ArrayList<Ship> ships;
         return grid;
     }
 
+    // Check if row and column are inside the board
     private boolean isValidCoordinate(int row, int col) {
         return row >= 0 && row < SIZE && col >= 0 && col < SIZE;
     }
 
+    // Check if ship can be placed in this position
     public boolean canPlaceShip(Ship ship, int row, int col, boolean horizontal) {
+
         for (int i = 0; i < ship.getSize(); i++) {
+
             int newRow = row;
             int newCol = col;
 
@@ -55,12 +63,15 @@ private ArrayList<Ship> ships;
         return true;
     }
 
+    // Place the ship on the board
     public boolean placeShip(Ship ship, int row, int col, boolean horizontal) {
+
         if (!canPlaceShip(ship, row, col, horizontal)) {
             return false;
         }
 
         for (int i = 0; i < ship.getSize(); i++) {
+
             int newRow = row;
             int newCol = col;
 
@@ -76,7 +87,9 @@ private ArrayList<Ship> ships;
         return true;
     }
 
+    // Receive attack and return the result
     public AttackResult receiveAttack(int row, int col) {
+
         if (!isValidCoordinate(row, col)) {
             return AttackResult.INVALID;
         }
@@ -103,17 +116,23 @@ private ArrayList<Ship> ships;
         return AttackResult.HIT;
     }
 
+    // Check if all ships are sunk
     public boolean allShipsSunk() {
+
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
+
                 if (grid[i][j].hasShip()) {
+
                     Ship ship = grid[i][j].getShip();
+
                     if (!ship.isSunk()) {
                         return false;
                     }
                 }
             }
         }
+
         return true;
     }
 }

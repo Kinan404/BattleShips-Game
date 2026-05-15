@@ -74,8 +74,7 @@ public class StartScreenUI extends JFrame {
         startButton.addActionListener(e -> {
             setStatusText("Connecting to server...");
             startButton.setEnabled(false);
-//            clientConnection.connectToServer("13.60.235.82", 5000);
-            clientConnection.connectToServer("127.0.0.1", 5000);
+            clientConnection.connectToServer("13.60.235.82", 5000);
 
             String playerName = nameField.getText().trim();
 

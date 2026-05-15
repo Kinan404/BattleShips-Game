@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.battleships.HelperClasses;
 
 /**
@@ -9,13 +5,17 @@ package com.mycompany.battleships.HelperClasses;
  * @author Kinan
  */
 public class Ship {
+
     private String name;
     private int size;
     private int health;
 
     public Ship(String name, int size) {
+
         this.name = name;
         this.size = size;
+
+        // Ship health starts with its size
         this.health = size;
     }
 
@@ -31,12 +31,15 @@ public class Ship {
         return health;
     }
 
+    // Reduce ship health when it is hit
     public void hit() {
+
         if (health > 0) {
             health--;
         }
     }
 
+    // Check if the ship is destroyed
     public boolean isSunk() {
         return health == 0;
     }

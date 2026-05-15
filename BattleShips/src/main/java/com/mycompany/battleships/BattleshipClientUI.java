@@ -26,7 +26,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 /**
  *
  * @author Kinan
@@ -45,10 +46,10 @@ public class BattleshipClientUI extends JFrame {
 
     private Board enemyBoard;
 
-// track clicks on enemy board
+    // To save which enemy cells were already clicked
     private boolean[][] enemyClicked = new boolean[10][10];
 
-// turn control (important for later networking)
+    // To control the player turn and stop the game when it ends
     private boolean isMyTurn = true;
     private boolean isGameOver = false;
 
@@ -58,7 +59,7 @@ public class BattleshipClientUI extends JFrame {
 
     private ClientConnection clientConnection;
 
-    // Our componants :::
+    // GUI components
     private JPanel myBoardPanel;
     private JPanel enemyBoardPanel;
     private JButton[][] myBoardButtons;
@@ -71,7 +72,7 @@ public class BattleshipClientUI extends JFrame {
 
     private JButton exitButton;
 
-    // temp
+    // Temporary fields used for testing
     private JTextField attackRowField;
     private JTextField attackColField;
     private JButton attackMyBoardButton;
@@ -82,13 +83,17 @@ public class BattleshipClientUI extends JFrame {
         this.playerRole = playerRole;
         this.playerName = playerName;
 
+        // Prepare the main window and its components
         initializeFrame();
         initializeComponents();
         buildLayout();
+        setupWindowCloseBehavior();
+
         setStatusText("You are " + playerRole);
         isMyTurn = false;
         setTurnText("Waiting for turn...");
 
+        // Add click action for each enemy board cell
         for (int row = 0; row < 10; row++) {
             for (int col = 0; col < 10; col++) {
                 int r = row;
@@ -97,9 +102,11 @@ public class BattleshipClientUI extends JFrame {
                 enemyBoardButtons[row][col].addActionListener(e -> handleEnemyClick(r, c));
             }
         }
+
+        // Show player name and role on the screen
         playerLabel.setText(playerName + " (" + playerRole + ")");
         setVisible(true);
-        
+
         setupExitButton();
 
     }
@@ -192,10 +199,13 @@ public class BattleshipClientUI extends JFrame {
 // later: send attack to server here
     }
 
+    // Update enemy board after attack result
     public void updateEnemyBoardUI(int row, int col, AttackResult result) {
+
         JButton button = enemyBoardButtons[row][col];
 
         switch (result) {
+
             case HIT:
                 styleAsHit(button);
                 setStatusText("Hit!");
@@ -221,7 +231,9 @@ public class BattleshipClientUI extends JFrame {
         }
     }
 
+    // Ask player if they want to play again
     private void showPlayAgainDialog() {
+
         int choice = JOptionPane.showConfirmDialog(
                 this,
                 "Do you want to play again?",
@@ -236,43 +248,59 @@ public class BattleshipClientUI extends JFrame {
         }
     }
 
+    // Reset game values for a new game
     private void restartGame() {
+
         isGameOver = false;
         isMyTurn = true;
 
-        // reset enemy clicks
+        // Clear clicked enemy cells
         enemyClicked = new boolean[10][10];
 
         resetAllBoardButtons();
+
         setStatusText("New game started");
         setTurnText("Your Turn");
     }
 
+    // Handle attack received from network
     public void handleAttackOnMyBoardFromNetwork(int row, int col, AttackResult result) {
         updateMyBoardUI(row, col, result);
     }
 
-public void showEndScreen(String resultText) {
-    new EndScreenUI(resultText, clientConnection);
-    dispose();
-}
+    // Open end screen after game finishes
+    public void showEndScreen(String resultText) {
+
+        new EndScreenUI(resultText, clientConnection);
+
+        dispose();
+    }
+
+    // Show ships on my board using data from server
     public void showShipsFromServer(String boardData) {
+
         int index = 0;
 
         for (int row = 0; row < 10; row++) {
             for (int col = 0; col < 10; col++) {
+
                 char value = boardData.charAt(index++);
 
+                // If value is 1, show ship
                 if (value == '1') {
                     styleAsShip(myBoardButtons[row][col]);
                 } else {
+
+                    // Otherwise show water
                     styleAsWater(myBoardButtons[row][col], false);
                 }
             }
         }
     }
 
+    // Setup main game window
     private void initializeFrame() {
+
         setTitle("Battleship - Client");
         setSize(1200, 760);
         setLocationRelativeTo(null);
@@ -280,7 +308,9 @@ public void showEndScreen(String resultText) {
         setMinimumSize(new Dimension(1100, 700));
     }
 
+    // Create all GUI components
     private void initializeComponents() {
+
         titleLabel = new JLabel("BATTLESHIP", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(new Color(235, 244, 255));
@@ -297,20 +327,23 @@ public void showEndScreen(String resultText) {
         turnLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
         turnLabel.setForeground(new Color(255, 214, 102));
 
-
         exitButton = createControlButton("Exit", new Color(192, 57, 43));
 
+        // Create board buttons
         myBoardButtons = new JButton[BOARD_SIZE][BOARD_SIZE];
         enemyBoardButtons = new JButton[BOARD_SIZE][BOARD_SIZE];
 
+        // Create player and enemy boards
         myBoardPanel = createBoardPanel("My Board", myBoardButtons, false);
         enemyBoardPanel = createBoardPanel("Enemy Board", enemyBoardButtons, true);
 
-        // last edit today:
+        // Show player role
         turnLabel.setText("Role: " + playerRole);
     }
 
+    // Build the main layout
     private void buildLayout() {
+
         JPanel backgroundPanel = new JPanel(new BorderLayout(20, 20));
         backgroundPanel.setBackground(new Color(8, 36, 64));
         backgroundPanel.setBorder(new EmptyBorder(18, 18, 18, 18));
@@ -322,34 +355,9 @@ public void showEndScreen(String resultText) {
         setContentPane(backgroundPanel);
     }
 
-    private JPanel createHeaderPanel() {
-        JPanel headerPanel = new JPanel(new BorderLayout(15, 10));
-        headerPanel.setOpaque(false);
-
-        JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setOpaque(false);
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
-
-        JPanel infoPanel = new JPanel(new GridLayout(2, 1, 5, 5));
-        infoPanel.setOpaque(false);
-        infoPanel.add(statusLabel);
-        infoPanel.add(turnLabel);
-
-        headerPanel.add(titlePanel, BorderLayout.NORTH);
-        headerPanel.add(infoPanel, BorderLayout.SOUTH);
-
-        return headerPanel;
-    }
-
-    private JPanel createCenterPanel() {
-        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 24, 0));
-        centerPanel.setOpaque(false);
-        centerPanel.add(wrapPanel(myBoardPanel));
-        centerPanel.add(wrapPanel(enemyBoardPanel));
-        return centerPanel;
-    }
-
+    // Create bottom panel with player name and exit button
     private JPanel createBottomPanel() {
+
         JPanel bottomPanel = new JPanel(new BorderLayout(20, 10));
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
@@ -368,34 +376,83 @@ public void showEndScreen(String resultText) {
         return bottomPanel;
     }
 
+    // Create the top panel
+    private JPanel createHeaderPanel() {
+
+        JPanel headerPanel = new JPanel(new BorderLayout(15, 10));
+        headerPanel.setOpaque(false);
+
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+
+        JPanel infoPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        infoPanel.setOpaque(false);
+        infoPanel.add(statusLabel);
+        infoPanel.add(turnLabel);
+
+        headerPanel.add(titlePanel, BorderLayout.NORTH);
+        headerPanel.add(infoPanel, BorderLayout.SOUTH);
+
+        return headerPanel;
+    }
+
+    // Create the center part with two boards
+    private JPanel createCenterPanel() {
+
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 24, 0));
+        centerPanel.setOpaque(false);
+
+        centerPanel.add(wrapPanel(myBoardPanel));
+        centerPanel.add(wrapPanel(enemyBoardPanel));
+
+        return centerPanel;
+    }
+
+    // Wrap panel inside another panel
     private JPanel wrapPanel(JPanel panel) {
+
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
+
         wrapper.add(panel, BorderLayout.CENTER);
+
         return wrapper;
     }
 
+    // Create game board panel
     private JPanel createBoardPanel(String title, JButton[][] boardButtons, boolean isEnemyBoard) {
+
         JPanel container = new JPanel(new BorderLayout(10, 10));
+
         container.setBackground(new Color(13, 52, 89));
+
         container.setBorder(new CompoundBorder(
                 new LineBorder(new Color(90, 150, 210), 2, true),
                 new EmptyBorder(14, 14, 14, 14)
         ));
 
+        // Board title
         JLabel boardTitle = new JLabel(title, SwingConstants.CENTER);
         boardTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         boardTitle.setForeground(Color.WHITE);
 
+        // Grid for board cells
         JPanel gridPanel = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE, 3, 3));
+
         gridPanel.setBackground(new Color(18, 72, 120));
         gridPanel.setBorder(new EmptyBorder(6, 6, 6, 6));
 
+        // Create all board buttons
         for (int row = 0; row < BOARD_SIZE; row++) {
             for (int col = 0; col < BOARD_SIZE; col++) {
+
                 JButton cellButton = new JButton();
+
                 styleCellButton(cellButton, isEnemyBoard);
+
                 boardButtons[row][col] = cellButton;
+
                 gridPanel.add(cellButton);
             }
         }
@@ -406,54 +463,47 @@ public void showEndScreen(String resultText) {
         return container;
     }
 
+    // Style board buttons
     private void styleCellButton(JButton button, boolean enemyBoard) {
+
         button.setPreferredSize(new Dimension(48, 48));
         button.setFocusPainted(false);
+
         button.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
         button.setBackground(enemyBoard ? new Color(52, 152, 219) : new Color(41, 128, 185));
+
         button.setForeground(Color.WHITE);
+
         button.setBorder(new LineBorder(new Color(220, 240, 255), 1, true));
+
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         button.setText("");
 
-        // UI-only placeholder: no logic here.
-        // Later, a controller can decide when text becomes X / O / ship icons.
+        // Cell text can be updated later during gameplay
     }
 
+    // Create buttons like exit button
     private JButton createControlButton(String text, Color color) {
+
         JButton button = new JButton(text);
+
         button.setFocusPainted(false);
+
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
         button.setForeground(Color.WHITE);
+
         button.setBackground(color);
+
         button.setPreferredSize(new Dimension(125, 38));
+
         button.setBorder(new EmptyBorder(8, 14, 8, 14));
+
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         return button;
-    }
-
-    // -----------------------------
-    // Getters for loose coupling
-    // Controller / game logic can use these later.
-    // -----------------------------
-    public JButton[][] getMyBoardButtons() {
-        return myBoardButtons;
-    }
-
-    public JButton[][] getEnemyBoardButtons() {
-        return enemyBoardButtons;
-    }
-
-    public JButton getExitButton() {
-        return exitButton;
-    }
-
-    public JLabel getStatusLabel() {
-        return statusLabel;
-    }
-
-    public JLabel getTurnLabel() {
-        return turnLabel;
     }
 
     // -----------------------------
@@ -510,10 +560,8 @@ public void showEndScreen(String resultText) {
             }
         }
     }
-    
-    // -----------------------------
+
     // Place checkers functions
-    // -----------------------------
     private void showShipsOnMyBoard() {
         Cell[][] grid = myBoard.getGrid();
 
@@ -528,30 +576,53 @@ public void showEndScreen(String resultText) {
         }
     }
 
-    
     // Exit function
-    
     private void setupExitButton() {
-    exitButton.addActionListener(e -> {
-        int choice = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to exit the game?",
-                "Exit Game",
-                JOptionPane.YES_NO_OPTION
-        );
+        exitButton.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to exit the game?",
+                    "Exit Game",
+                    JOptionPane.YES_NO_OPTION
+            );
 
-        if (choice == JOptionPane.YES_OPTION) {
-            if (clientConnection != null) {
-                clientConnection.sendExit();
+            if (choice == JOptionPane.YES_OPTION) {
+                if (clientConnection != null) {
+                    clientConnection.sendExit();
+                }
+
+                dispose();
             }
+        });
+    }
 
-            dispose();
-        }
-    });
-}
-    // -----------------------------
+    // when the player press X to closr the frame
+    private void setupWindowCloseBehavior() {
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int choice = JOptionPane.showConfirmDialog(
+                        BattleshipClientUI.this,
+                        "Are you sure you want to exit the game?",
+                        "Exit Game",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (choice == JOptionPane.YES_OPTION) {
+                    if (clientConnection != null) {
+                        clientConnection.sendExit();
+                        clientConnection.closeConnection();
+                    }
+
+                    dispose();
+                }
+            }
+        });
+    }
+
     // Small UI helper methods
-    // -----------------------------
     public void setStatusText(String text) {
         statusLabel.setText("Status: " + text);
     }
@@ -569,6 +640,5 @@ public void showEndScreen(String resultText) {
                 -> new BattleshipClientUI("PLAYER_1", "TestPlayer", null)
         );
     }
-    // the end of the function 
 
 }
